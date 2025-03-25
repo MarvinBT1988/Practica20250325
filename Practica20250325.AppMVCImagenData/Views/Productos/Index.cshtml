@@ -40,7 +40,11 @@
                 @Html.DisplayFor(modelItem => item.Precio)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ImagenBytes)
+                    @if (item.ImagenBytes != null && item.ImagenBytes.Length>0){
+                        string base64Image = Convert.ToBase64String(item.ImagenBytes);
+                        string imageUrl = $"data:image/png;base64,{base64Image}";
+                        <img src="@imageUrl" alt="Imagen" style="max-width: 75px; max-height: 75px;" />
+                    }
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ProductoId">Edit</a> |

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -47,16 +48,30 @@ namespace Practica20250325.AppMVCImagenData.Controllers
         {
             return View();
         }
-
+        public async Task<byte[]?> GenerarByteImage(IFormFile? file, byte[]?  bytesImage =null)
+        {
+            byte[]? bytes = bytesImage;
+            if (file != null && file.Length > 0)
+            {
+                // Construir la ruta del archivo               
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    bytes= memoryStream.ToArray(); // Devuelve los bytes del archivo
+                }
+            }
+            return bytes;
+        }       
         // POST: Productos/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductoId,Nombre,Descripcion,Precio,ImagenBytes")] Producto producto)
+        public async Task<IActionResult> Create([Bind("ProductoId,Nombre,Descripcion,Precio")] Producto producto, IFormFile? file = null)
         {
             if (ModelState.IsValid)
             {
+                producto.ImagenBytes = await GenerarByteImage(file);
                 _context.Add(producto);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -85,7 +100,7 @@ namespace Practica20250325.AppMVCImagenData.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductoId,Nombre,Descripcion,Precio,ImagenBytes")] Producto producto)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductoId,Nombre,Descripcion,Precio")] Producto producto, IFormFile? file = null)
         {
             if (id != producto.ProductoId)
             {
@@ -96,6 +111,7 @@ namespace Practica20250325.AppMVCImagenData.Controllers
             {
                 try
                 {
+                    producto.ImagenBytes = await GenerarByteImage(file);
                     _context.Update(producto);
                     await _context.SaveChangesAsync();
                 }
