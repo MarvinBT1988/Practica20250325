@@ -40,18 +40,21 @@
             </div>
         </div>
         <div class="col-6">
-           @*  @if (!string.IsNullOrEmpty(Model.ImagenRuta))
+            @if (Model.ImagenBytes != null && Model.ImagenBytes.Length > 0)
             {
+                string base64Image = Convert.ToBase64String(Model.ImagenBytes);
+                    string imageUrl = $"data:image/png;base64,{base64Image}";
+                               
                 <div id="preview">
-                    <img id="imagePreview" src="@Model.ImagenRuta" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
+                    <img id="imagePreview" src="@imageUrl" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
                 </div>
             }
             else
             {
                 <div id="preview" style="display: none;">
-                    <img id="imagePreview" src="@Model.ImagenRuta" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
+                    <img id="imagePreview" src="#" alt="Vista previa de la imagen" style="max-width: 200px; max-height: 200px;">
                 </div>
-            } *@
+            }
         </div>
     </div>
     <div class="form-group">
