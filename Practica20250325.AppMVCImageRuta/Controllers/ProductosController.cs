@@ -63,6 +63,38 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
             }
             return urlImage;
         }
+        public async Task<bool> EliminarImage(string urlImage)
+        {
+            if (string.IsNullOrEmpty(urlImage))
+            {
+                return false;
+            }
+
+            try
+            {
+                // Construir la ruta completa del archivo
+                string nameFile = Path.GetFileName(urlImage);
+                string path = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes", nameFile);
+
+                // Verificar si el archivo existe y eliminarlo
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                    return true;
+                }
+                else
+                {
+                    //El archivo no existe.
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Manejar cualquier excepción que ocurra durante la eliminación
+                Console.WriteLine($"Error al eliminar la imagen: {ex.Message}");
+                return false;
+            }
+        }
         // GET: Productos/Create
         public IActionResult Create()
         {
@@ -118,9 +150,21 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
             {
                 try
                 {
-                    producto.ImagenRuta = await GuardarImage(file);
+                    var rutaImagenAnterior = await _context.Productos
+                        .Where(s => s.ProductoId == producto.ProductoId)
+                        .Select(s => s.ImagenRuta).FirstOrDefaultAsync();
+
+                    producto.ImagenRuta = await GuardarImage(file,producto.ImagenRuta);
                     _context.Update(producto);
-                    await _context.SaveChangesAsync();
+                    int result=await _context.SaveChangesAsync();
+                    if (result > 0 && rutaImagenAnterior!=null && rutaImagenAnterior.Length>0)
+                    {
+                        if(rutaImagenAnterior != producto.ImagenRuta)
+                        {
+                            await EliminarImage(rutaImagenAnterior);
+                        }
+                    }
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -164,10 +208,15 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
             var producto = await _context.Productos.FindAsync(id);
             if (producto != null)
             {
+              
                 _context.Productos.Remove(producto);
             }
-
-            await _context.SaveChangesAsync();
+            var rutaImagen = producto.ImagenRuta;
+            int result= await _context.SaveChangesAsync();
+            if (result > 0 && !string.IsNullOrWhiteSpace(rutaImagen))
+            {
+                await EliminarImage(rutaImagen);
+            }
             return RedirectToAction(nameof(Index));
         }
 
