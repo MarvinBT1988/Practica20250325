@@ -111,7 +111,11 @@ namespace Practica20250325.AppMVCImagenData.Controllers
             {
                 try
                 {
-                    producto.ImagenBytes = await GenerarByteImage(file);
+                    var byteImagesAnterior = await _context.Productos
+                        .Where(s => s.ProductoId == producto.ProductoId)
+                        .Select(s => s.ImagenBytes).FirstOrDefaultAsync();
+
+                    producto.ImagenBytes = await GenerarByteImage(file, byteImagesAnterior);
                     _context.Update(producto);
                     await _context.SaveChangesAsync();
                 }
