@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,11 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
     public class ProductosController : Controller
     {
         private readonly Practica20250325IrutaDbContext _context;
-
-        public ProductosController(Practica20250325IrutaDbContext context)
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        public ProductosController(Practica20250325IrutaDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment= webHostEnvironment;
         }
 
         // GET: Productos
@@ -41,7 +43,26 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
 
             return View(producto);
         }
+        public async Task<string> GuardarImage(IFormFile? file, string url = "")
+        {
+            string urlImage = url;
+            if (file != null && file.Length > 0)
+            {
+                // Construir la ruta del archivo
+                string nameFile = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                string path = Path.Combine(_webHostEnvironment.WebRootPath, "imagenes", nameFile);
 
+                // Guardar la imagen en wwwroot
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Guardar la ruta en la base de datos
+                urlImage = "/imagenes/" + nameFile;
+            }
+            return urlImage;
+        }
         // GET: Productos/Create
         public IActionResult Create()
         {
@@ -53,10 +74,11 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductoId,Nombre,Descripcion,Precio,ImagenRuta")] Producto producto)
+        public async Task<IActionResult> Create([Bind("ProductoId,Nombre,Descripcion,Precio,ImagenRuta")] Producto producto,IFormFile? file=null)
         {
             if (ModelState.IsValid)
             {
+                producto.ImagenRuta = await GuardarImage(file);
                 _context.Add(producto);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -85,7 +107,7 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductoId,Nombre,Descripcion,Precio,ImagenRuta")] Producto producto)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductoId,Nombre,Descripcion,Precio,ImagenRuta")] Producto producto, IFormFile? file = null)
         {
             if (id != producto.ProductoId)
             {
@@ -96,6 +118,7 @@ namespace Practica20250325.AppMVCImageRuta.Controllers
             {
                 try
                 {
+                    producto.ImagenRuta = await GuardarImage(file);
                     _context.Update(producto);
                     await _context.SaveChangesAsync();
                 }

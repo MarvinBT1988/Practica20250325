@@ -39,9 +39,12 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Precio)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ImagenRuta)
-            </td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(item.ImagenRuta))
+                    {
+                        <img src="@item.ImagenRuta" style="width:75px" />
+                    }
+                </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ProductoId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.ProductoId">Details</a> |

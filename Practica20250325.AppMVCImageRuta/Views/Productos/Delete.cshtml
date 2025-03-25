@@ -33,7 +33,10 @@
             @Html.DisplayNameFor(model => model.ImagenRuta)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ImagenRuta)
+            @if (!string.IsNullOrWhiteSpace(Model.ImagenRuta))
+            {
+                <img src="@Model.ImagenRuta" style="width:75px" />
+            }
         </dd>
     </dl>
     
